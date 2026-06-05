@@ -1,0 +1,46 @@
+{
+  "datum": "04-06-2026",
+  "zaposleni": [
+    {
+      "ime": "Neđo",
+      "dolazak": "14:10:00",
+      "pocetak_pauze": "17:35:00",
+      "kraj_pauze": "18:03:00",
+      "kraj_smjene": "21:10:00",
+      "radne_minute": 420
+    },
+    {
+      "ime": "Danilo M.",
+      "dolazak": "14:10:00",
+      "pocetak_pauze": "17:35:00",
+      "kraj_pauze": "18:03:00",
+      "kraj_smjene": "21:15:00",
+      "radne_minute": 425
+    },
+    {
+      "ime": "Nino",
+      "dolazak": "14:10:00",
+      "pocetak_pauze": "17:35:00",
+      "kraj_pauze": "18:03:00",
+      "kraj_smjene": "21:15:00",
+      "radne_minute": 425
+    },
+    {
+      "ime": "Enđel",
+      "dolazak": "14:10:00",
+      "pocetak_pauze": "17:35:00",
+      "kraj_pauze": "18:03:00",
+      "kraj_smjene": "21:15:00",
+      "radne_minute": 425
+    },
+    {
+      "ime": "Danilo Đ.",
+      "dolazak": "14:10:00",
+      "pocetak_pauze": "17:35:00",
+      "kraj_pauze": "18:03:00",
+      "kraj_smjene": "18:52:12",
+      "radne_minute": 282
+    }
+  ],
+  "arhivirano": "2026-06-04T18:52:12"
+}
