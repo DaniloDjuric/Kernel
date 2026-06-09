@@ -1,16 +1,14 @@
 from __future__ import annotations
 
 from datetime import date, datetime, time
-from pathlib import Path
 
 import customtkinter as ctk
 
-from admin_auth import verify_password
+from admin_auth import change_password, verify_password
 from app_records import STEP_LABELS, DayRecord, ShiftStep, Workday
 from archive_io import is_day_saved, list_archived_dates, load_day, save_day
 from employees import EMPLOYEES, expected_minutes
-
-DATA_DIR = Path(__file__).resolve().parent / "data"
+from paths import data_dir, load_ctk_image, load_logo_image
 
 STEPS_UI = (
     ShiftStep.DOLAZAK,
@@ -59,15 +57,37 @@ class AttendanceApp(ctk.CTk):
     # --- UI ------------------------------------------------------------------
 
     def _build_ui(self) -> None:
+        self._header_row_height = 40
         self._header_frame = ctk.CTkFrame(self, fg_color="transparent")
         self._header_frame.pack(fill="x", padx=24, pady=(16, 4))
         header = self._header_frame
+        header.grid_columnconfigure(1, weight=1)
+        header.grid_rowconfigure(0, minsize=self._header_row_height)
 
-        ctk.CTkLabel(
+        self._logo_image = load_ctk_image("icons", "kernel-png.png", size=(32, 32))
+        if self._logo_image is None:
+            self._logo_image = load_logo_image()
+
+        self._settings_menu_popup: ctk.CTkToplevel | None = None
+        self.settings_btn = ctk.CTkButton(
+            header,
+            text="" if self._logo_image else "K",
+            image=self._logo_image,
+            width=36,
+            height=36,
+            fg_color="transparent",
+            hover_color=("gray85", "gray30"),
+            command=self._toggle_settings_menu,
+        )
+        self.settings_btn.grid(row=0, column=0, padx=(0, 12))
+
+        self.title_label = ctk.CTkLabel(
             header,
             text="Evidencija radnog vremena",
-            font=ctk.CTkFont(size=22, weight="bold"),
-        ).pack(side="left")
+            font=ctk.CTkFont(size=20, weight="bold"),
+            height=36,
+        )
+        self.title_label.grid(row=0, column=1, sticky="w")
 
         self.admin_banner = ctk.CTkLabel(
             header,
@@ -75,28 +95,29 @@ class AttendanceApp(ctk.CTk):
             font=ctk.CTkFont(size=13, weight="bold"),
             text_color=("#b45309", "#fbbf24"),
         )
-        self.admin_banner.pack(side="left", padx=(16, 0))
-
-        right_header = ctk.CTkFrame(header, fg_color="transparent")
-        right_header.pack(side="right")
-
-        self.date_label = ctk.CTkLabel(
-            right_header,
-            text="",
-            font=ctk.CTkFont(size=14),
-            text_color="gray",
-        )
-        self.date_label.pack(side="right", padx=(12, 0))
+        self.admin_banner.grid(row=1, column=1, sticky="w", padx=(48, 0))
+        self.admin_banner.grid_remove()
 
         self.admin_btn = ctk.CTkButton(
-            right_header,
+            header,
             text="Admin",
             width=100,
+            height=32,
             fg_color=("gray75", "gray30"),
             hover_color=("gray65", "gray40"),
             command=self._toggle_admin_request,
         )
-        self.admin_btn.pack(side="right")
+        self.admin_btn.grid(row=0, column=2, padx=(0, 12))
+
+        self.date_label = ctk.CTkLabel(
+            header,
+            text="",
+            font=ctk.CTkFont(size=14),
+            text_color="gray",
+            height=36,
+            anchor="e",
+        )
+        self.date_label.grid(row=0, column=3, sticky="e")
 
         self.admin_bar = ctk.CTkFrame(self, fg_color=("gray88", "gray20"))
         self.admin_bar.pack(fill="x", padx=24, pady=(0, 4))
@@ -187,6 +208,8 @@ class AttendanceApp(ctk.CTk):
                     text=STEP_LABELS[step],
                     width=110,
                     command=lambda n=name, s=step: self._on_action(n, s),
+                    border_width=3,
+                    border_color=("gray85", "gray25"),
                 )
                 btn.grid(row=0, column=col + 1, padx=2, pady=8)
 
@@ -223,6 +246,116 @@ class AttendanceApp(ctk.CTk):
             text_color="gray",
         )
         self.hint_label.pack(side="right")
+
+    # --- Settings -------------------------------------------------------------
+
+    def _toggle_settings_menu(self) -> None:
+        if self._settings_menu_popup is not None and self._settings_menu_popup.winfo_exists():
+            self._settings_menu_popup.destroy()
+            self._settings_menu_popup = None
+            return
+
+        menu = ctk.CTkToplevel(self)
+        menu.overrideredirect(True)
+        menu.attributes("-topmost", True)
+        self._settings_menu_popup = menu
+
+        frame = ctk.CTkFrame(menu, corner_radius=8)
+        frame.pack(fill="both", expand=True)
+
+        options = [
+            ("Promijeni admin lozinku", self._show_change_password_dialog),
+            ("Upravljanje radnicima", self._show_workers_settings_placeholder),
+        ]
+
+        for label, action in options:
+            ctk.CTkButton(
+                frame,
+                text=label,
+                anchor="w",
+                width=220,
+                fg_color="transparent",
+                hover_color=("gray85", "gray30"),
+                command=lambda a=action: self._run_settings_action(a),
+            ).pack(fill="x", padx=6, pady=3)
+
+        self.update_idletasks()
+        x = self.settings_btn.winfo_rootx()
+        y = self.settings_btn.winfo_rooty() + self.settings_btn.winfo_height() + 4
+        menu.geometry(f"232x{len(options) * 44 + 16}+{x}+{y}")
+
+        menu.bind("<Escape>", lambda _e: self._close_settings_menu())
+
+    def _close_settings_menu(self) -> None:
+        if self._settings_menu_popup is not None and self._settings_menu_popup.winfo_exists():
+            self._settings_menu_popup.destroy()
+        self._settings_menu_popup = None
+
+    def _run_settings_action(self, action) -> None:
+        self._close_settings_menu()
+        action()
+
+    def _show_change_password_dialog(self) -> None:
+        dialog = ctk.CTkToplevel(self)
+        dialog.title("Promjena admin lozinke")
+        dialog.geometry("400x340")
+        dialog.resizable(False, False)
+        dialog.transient(self)
+        dialog.grab_set()
+
+        ctk.CTkLabel(
+            dialog,
+            text="Promjena admin lozinke",
+            font=ctk.CTkFont(size=16, weight="bold"),
+        ).pack(pady=(20, 16))
+
+        fields: dict[str, ctk.CTkEntry] = {}
+        for label, key in (
+            ("Trenutna lozinka:", "current"),
+            ("Nova lozinka:", "new"),
+            ("Potvrdi novu lozinku:", "confirm"),
+        ):
+            ctk.CTkLabel(dialog, text=label, anchor="w").pack(padx=32, fill="x")
+            ent = ctk.CTkEntry(dialog, width=280, show="*")
+            ent.pack(padx=32, pady=(4, 10))
+            fields[key] = ent
+
+        fields["current"].focus_set()
+        err = ctk.CTkLabel(dialog, text="", text_color="#ef4444")
+
+        def submit() -> None:
+            if fields["new"].get() != fields["confirm"].get():
+                err.configure(text="Nove lozinke se ne podudaraju.")
+                err.pack(pady=(0, 8))
+                return
+            if change_password(fields["current"].get(), fields["new"].get()):
+                dialog.destroy()
+                self._show_message("Sačuvano", "Admin lozinka je promijenjena.")
+            else:
+                err.configure(text="Trenutna lozinka nije ispravna.")
+                err.pack(pady=(0, 8))
+
+        btns = ctk.CTkFrame(dialog, fg_color="transparent")
+        btns.pack(pady=(8, 20))
+        ctk.CTkButton(btns, text="Odustani", fg_color="gray40", command=dialog.destroy).pack(
+            side="left", padx=8
+        )
+        ctk.CTkButton(btns, text="Sačuvaj", command=submit).pack(side="left", padx=8)
+        dialog.bind("<Return>", lambda _e: submit())
+
+    def _show_workers_settings_placeholder(self) -> None:
+        dialog = ctk.CTkToplevel(self)
+        dialog.title("Upravljanje radnicima")
+        dialog.geometry("420x160")
+        dialog.resizable(False, False)
+        dialog.transient(self)
+        dialog.grab_set()
+        ctk.CTkLabel(
+            dialog,
+            text="Upravljanje radnicima\n(dodavanje i uklanjanje)\n\nUskoro dostupno.",
+            justify="center",
+        ).pack(expand=True, padx=20, pady=20)
+        ctk.CTkButton(dialog, text="U redu", command=dialog.destroy).pack(pady=(0, 16))
 
     # --- Admin ----------------------------------------------------------------
 
@@ -267,7 +400,8 @@ class AttendanceApp(ctk.CTk):
         self.admin_bar.pack(fill="x", padx=24, pady=(0, 4), after=self.winfo_children()[0])
         self._refresh_day_combo()
         self.admin_btn.configure(text="Zatvori admin mod")
-        self.admin_banner.configure(text="  ADMIN MOD")
+        self.admin_banner.configure(text="ADMIN MOD")
+        self.admin_banner.grid(row=1, column=1, sticky="w", padx=(48, 0))
         self.hint_label.configure(
             text="Admin: Ručno uređivanje vremena"
         )
@@ -280,6 +414,7 @@ class AttendanceApp(ctk.CTk):
         self.admin_bar.pack_forget()
         self.admin_btn.configure(text="Admin")
         self.admin_banner.configure(text="")
+        self.admin_banner.grid_remove()
         self.hint_label.configure(text="Vremena se unose isključivo pritiskom na dugme.")
         self._refresh_all_rows()
 
@@ -437,9 +572,9 @@ class AttendanceApp(ctk.CTk):
                 if next_step == ShiftStep.DONE:
                     btn.configure(state="disabled")
                 elif step == next_step:
-                    btn.configure(state="normal")
+                    btn.configure(state="normal", border_color=("gray85", "gray35"), text_color=("gray10", "gray90"))
                 else:
-                    btn.configure(state="disabled")
+                    btn.configure(state="disabled", border_color=("gray65", "gray15"), text_color=("gray50", "gray60"))
 
         widgets["status"].configure(text=self._format_status(name, record))
 
@@ -536,7 +671,7 @@ class AttendanceApp(ctk.CTk):
 
 
 def main() -> None:
-    DATA_DIR.mkdir(parents=True, exist_ok=True)
+    data_dir().mkdir(parents=True, exist_ok=True)
     app = AttendanceApp()
     app.mainloop()
 

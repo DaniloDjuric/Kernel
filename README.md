@@ -1,5 +1,36 @@
 # Evidencija radnog vremena
 
+## Pokretanje bez Pythona (.exe)
+
+Na računaru gdje imate Python:
+
+```powershell
+cd "c:\Users\Korisnik\OneDrive\Desktop\Kernel"
+.\build.ps1
+```
+
+Zatim na radnom PC kopirajte cijeli folder **`dist\Evidencija`** (npr. na Desktop). Dupli klik na **`Evidencija.exe`** — Python na tom PC-u **nije potreban**.
+
+- Arhiva dana: `data\archive\` (kreira se pored `.exe`)
+- Promjena admin lozinke: kroz **Postavke** u aplikaciji (ne treba rebuild). Promjena liste radnika: još uvijek u `employees.py` + rebuild.
+
+## Slike i ikone
+
+Stavite PNG datoteke u folder **`assets/`** (ili pored `.exe` u `Evidencija\assets\` — tada nije potreban rebuild):
+
+| Datoteka | Namjena |
+|----------|---------|
+| `assets/icons/kernel-png.png` | Logo gore lijevo |
+| `assets/icons/settings.png` | Ikona zupčanika za postavke |
+
+Zamijenite datoteku istim imenom kad god želite novi izgled. Preporuka: PNG s transparentnom pozadinom.
+
+## Razvoj (s Pythonom)
+
+```powershell
+pip install -r requirements.txt
+python app.py
+```
 
 ## Zaposleni i rasporedi
 
@@ -31,11 +62,15 @@ Svaki dan se **jednom** automatski sačuva u `data/archive/DD-MM-YYYY.json` (npr
 
 Nakon što je dan sačuvan, aplikacija se resetuje, spremna za sledeći dan.
 
+## Opcije
+
+- **Promijeni admin lozinku** — trenutna, nova i potvrda; sprema se u `data/admin.json` (ostaje i nakon zatvaranja aplikacije). Zadana lozinka pri prvom pokretanju: `admin`.
+- **Upravljanje radnicima** — uskoro (dodavanje/uklanjanje iz aplikacije).
+
 ## Admin mod
 
 1. Kliknite **Admin** (gore desno) i unesite lozinku.  
-2. Lozinka je definirana u `admin_auth.py` (`ADMIN_PASSWORD`, zadano: `admin`).  
-3. U admin modu:
+2. U admin modu:
    - polja vremena postaju **ručno promjenjiva** (format `HH:MM`);
    - dugmad za zaposlene su onemogućena;
    - Omogućeno je biranje i izmjena današnjeg ili prethodnih arhiviranih dana;

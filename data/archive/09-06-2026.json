@@ -1,0 +1,17 @@
+{
+  "datum": "09-06-2026",
+  "zaposleni": [
+    {
+      "ime": "Neđo",
+      "raspored": "8h",
+      "ocekivane_minute": 480,
+      "dolazak": "23:51:28",
+      "pocetak_pauze": "23:51:28",
+      "kraj_pauze": "23:51:29",
+      "kraj_smjene": "23:51:30",
+      "radne_minute": 0,
+      "prekovremene_minute": 0
+    }
+  ],
+  "izmijenjeno": "2026-06-09T23:51:30"
+}

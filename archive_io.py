@@ -7,8 +7,8 @@ from datetime import date, datetime
 from pathlib import Path
 
 from app_records import DayRecord
+from paths import archive_dir
 
-ARCHIVE_DIR = Path(__file__).resolve().parent / "data" / "archive"
 ARCHIVE_DATE_FMT = "%d-%m-%Y"
 
 
@@ -24,7 +24,7 @@ def parse_archive_date(text: str) -> date | None:
 
 
 def archive_path(work_date: date) -> Path:
-    return ARCHIVE_DIR / f"{format_archive_date(work_date)}.json"
+    return archive_dir() / f"{format_archive_date(work_date)}.json"
 
 
 def is_day_saved(work_date: date) -> bool:
@@ -32,9 +32,10 @@ def is_day_saved(work_date: date) -> bool:
 
 
 def list_archived_dates() -> list[date]:
-    ARCHIVE_DIR.mkdir(parents=True, exist_ok=True)
+    folder = archive_dir()
+    folder.mkdir(parents=True, exist_ok=True)
     dates: list[date] = []
-    for path in ARCHIVE_DIR.glob("*.json"):
+    for path in folder.glob("*.json"):
         parsed = parse_archive_date(path.stem)
         if parsed is not None:
             dates.append(parsed)
@@ -48,7 +49,8 @@ def load_day(work_date: date, employee_names: list[str]) -> dict[str, DayRecord]
         return records
 
     payload = json.loads(path.read_text(encoding="utf-8"))
-    by_name = {row["ime"]: row for row in payload.get("zaposleni", [])}
+    rows = payload.get("zaposleni", payload.get("zaposlenici", []))
+    by_name = {row["ime"]: row for row in rows}
     for name in employee_names:
         row = by_name.get(name)
         if row:
@@ -69,7 +71,7 @@ def save_day(
     if only_active:
         to_save = [n for n in employee_names if records[n].has_activity()]
 
-    ARCHIVE_DIR.mkdir(parents=True, exist_ok=True)
+    archive_dir().mkdir(parents=True, exist_ok=True)
     payload = {
         "datum": format_archive_date(work_date),
         "zaposleni": [

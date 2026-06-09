@@ -1,46 +1,61 @@
 {
-  "datum": "04-06-2026",
+  "datum": "02-06-2026",
   "zaposleni": [
     {
       "ime": "Neđo",
+      "raspored": "8h",
+      "ocekivane_minute": 480,
       "dolazak": "14:10:00",
       "pocetak_pauze": "17:35:00",
       "kraj_pauze": "18:03:00",
       "kraj_smjene": "21:10:00",
-      "radne_minute": 420
+      "radne_minute": 420,
+      "prekovremene_minute": 0
     },
     {
       "ime": "Danilo M.",
+      "raspored": "4h",
+      "ocekivane_minute": 240,
       "dolazak": "14:10:00",
       "pocetak_pauze": "17:35:00",
       "kraj_pauze": "18:03:00",
       "kraj_smjene": "21:15:00",
-      "radne_minute": 425
+      "radne_minute": 425,
+      "prekovremene_minute": 185
     },
     {
       "ime": "Nino",
+      "raspored": "8h",
+      "ocekivane_minute": 480,
       "dolazak": "14:10:00",
       "pocetak_pauze": "17:35:00",
       "kraj_pauze": "18:03:00",
       "kraj_smjene": "21:15:00",
-      "radne_minute": 425
+      "radne_minute": 425,
+      "prekovremene_minute": 0
     },
     {
       "ime": "Enđel",
+      "raspored": "6h 40m",
+      "ocekivane_minute": 400,
       "dolazak": "14:10:00",
       "pocetak_pauze": "17:35:00",
       "kraj_pauze": "18:03:00",
       "kraj_smjene": "21:15:00",
-      "radne_minute": 425
+      "radne_minute": 425,
+      "prekovremene_minute": 25
     },
     {
       "ime": "Danilo Đ.",
+      "raspored": "6h 40m",
+      "ocekivane_minute": 400,
       "dolazak": "14:10:00",
       "pocetak_pauze": "17:35:00",
       "kraj_pauze": "18:03:00",
-      "kraj_smjene": "18:52:12",
-      "radne_minute": 282
+      "kraj_smjene": "18:52:00",
+      "radne_minute": 282,
+      "prekovremene_minute": 0
     }
   ],
-  "arhivirano": "2026-06-04T18:52:12"
+  "izmijenjeno": "2026-06-07T13:18:59"
 }
